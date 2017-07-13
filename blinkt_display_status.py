@@ -7,14 +7,33 @@ LED_MIN = 0
 LED_MAX = 7
 #Blinkt highest and lowest lights
 
+AVAILABLE_COLOR = [0, 255, 0]
+BUSY_COLOR = [255, 0, 0]
+DISTURBABLE_COLOR = [94, 18, 0]
+FINDING_COLOR = [0, 0, 255]
+ALERT_COLOR = [200, 3, 8]
+PARTY_LOOP_COUNT = 10
+#CONSTANTS
 
-#different light patterns
+
+
+
+#customSleep to allow to check for change in status while sleeping
+def customSleep( duration, holderStatus ):
+    count = int(duration/0.01)
+    for x in range(0, count+1):
+        time.sleep(0.01)
+        if status.get_status() != holderStatus:
+             raise Exception("Status changed")
+
+#set color of singe led - base function 
 def single_led(current_led, r,g,b, brightness):
     if current_led < LED_MIN or current_led > LED_MAX:
         #check to see if selected light actually exists on Blinkt
         return False
     set_pixel(current_led,r,g,b,brightness)
-    
+
+#backwards and forwards animation of lights
 def trace(current_led,r,g,b,direction):
     clear()
     if direction == "forwards":
@@ -28,74 +47,79 @@ def trace(current_led,r,g,b,direction):
         single_led(current_led + 1,r,g,b,0.5)
         single_led(current_led + 2,r,g,b,0.1)
     show()
-    
-def LED_line(interval,brightness,led,r,g,b):
+
+#cause the lights to travel in a line
+#and have brightness close to the normal distribution.
+def LED_line(interval,brightness,led,r,g,b, holderStatus):
     if led == 0 or led == 7:
-        #dim at ending lights
         clear()
-        set_pixel(led,r,g,b,(brightness / 12))
+        set_pixel(led,r,g,b,(brightness / 20.0))
         show()
-        time.sleep(interval)
+        customSleep(interval, holderStatus)
+        
     elif led == 1 or led == 6:
         clear()
-        set_pixel(led,r,g,b,(brightness / 8))
+        set_pixel(led,r,g,b,(brightness / 10.0))
         show()
-        time.sleep(interval)
+        customSleep(interval, holderStatus)
+        
     elif led == 2 or led == 5:
         clear()
-        set_pixel(led,r,g,b,(brightness / 4))
+        set_pixel(led,r,g,b,(brightness / 5.0))
         show()
-        time.sleep(interval)
+        customSleep(interval, holderStatus)
+        
     elif led == 3 or led == 4:
-        #brighter in the middle lights
         clear()
         set_pixel(led,r,g,b,brightness)
         show()
-        time.sleep(interval)
-
-def flashing(r,g,b,number_of_flashes,time_gap):
-    # make the lights flash
+        customSleep(interval, holderStatus)
+        
+#make lights to flash
+def flashing(r,g,b,number_of_flashes,time_gap, holderStatus):
     for x in range(number_of_flashes):
         set_all(r,g,b,1)
         show()
-        time.sleep(time_gap)
+        customSleep(time_gap, holderStatus)
         clear()
         show()
-        time.sleep(time_gap / 1.3)
+        customSleep(time_gap / 1.3, holderStatus)
 
-def solid_colour(r,g,b):
-    #lights go side to side then solid when called
-    time.sleep(1)
+#show a solid_colour beginning with LED_line animation
+def solid_colour(r,g,b, holderStatus):
+    customSleep(1, holderStatus)
     for x in range(8):
-        LED_line(0.12,1,x,r,g,b)
+        LED_line(0.08,1.0,x,r,g,b, holderStatus)
     for x in range (7,-1,-1):
-        LED_line(0.12,1,x,r,g,b)
+        LED_line(0.08,1.0,x,r,g,b, holderStatus)
     clear()
     set_all(r,g,b,0.1)
     show()
-    
-def animation(r,g,b):
-    #lights animate when called
-    time.sleep(0.5)
+
+#coherent backwards and forwards animation using trace function
+def animation(r,g,b, holderStatus):
+    customSleep(0.5, holderStatus)
     for y in range(3):
         for x in range(-2,10):
             trace(x,r,g,b,"forwards")
-            time.sleep(0.25)
+            customSleep(0.25, holderStatus)
         if y != 2:
             for x in range (7,-3,-1):
                 trace(x,r,g,b,"backwards")
-                time.sleep(0.25)
-    flashing(r,g,b,2,0.5)
+                customSleep(0.25, holderStatus)
+    flashing(r,g,b,2,0.5, holderStatus)
     set_all(r,g,b,1)
     show()
-    time.sleep(1.5)
+    customSleep(1.5, holderStatus)
     clear()
     show()
 
-def party(time_to_last_for):
-    #lights randomly appear with random colours
+#lights randomly appear with random colours
+def party(loop_count, holderStatus):  
     previous_led = 8
-    for x in range(time_to_last_for * 20):
+    #for x in range(loop_count * 20):
+    #party forever...
+    while True:
         for x in range(2):
             difference = False
             led = random.randint(0,7)
@@ -111,41 +135,80 @@ def party(time_to_last_for):
             single_led(led,red,green,blue,0.5)
             show()
         clear()
-        time.sleep(0.05)
+        customSleep(0.05, holderStatus)
         trace(led,red,green,blue,'forward')
-    flashing(red,green,blue,2,0.1)
+    flashing(red, green, blue, 2, 0.1, holderStatus)
     clear()
 
-def error():
-    #lights flash red 8 times when called
-    print("Error")
-    flashing(255,0,0,8,0.25)
-
-
-def show_status():
-    global previous_status 
-    current_status = status.get_status()
-    status_name = current_status['name']
-    for array in status.STATUSES:
-        if array == status_name:
-            light_type = current_status['lights']            
-            if current_status['monocolour'] == 'no':
-                length = current_status['length']
-                globals()[light_type](length)
+#consistent pulse
+def alert(r, g, b, holderStatus):
+    clear()
+    brightness = 0.0
+    direction = True
+    running = True
+    while running:
+        if direction == True:
+            brightness += 0.1
+            if brightness >= 0.9:
+                direction = False
+        else:
+            if brightness > 0.15: 
+                brightness -= 0.1
             else:
-                r = current_status['red']
-                g = current_status['green']
-                b = current_status['blue']
-                globals()[light_type](r,g,b)
-    previous_status = current_status
+                brightness = 0.0
+            if brightness <= 0.000001:
+                direction = True
+        set_all(r, g, b, brightness)
+        show()
+        print (brightness)
+        if brightness == 0.0:
+            customSleep(0.3, holderStatus)
+        elif brightness >= 0.9:
+            customSleep(0.3, holderStatus)
+        else:
+            customSleep(0.05, holderStatus)
+            
+#respond to errors   
+def error():
+    print("Error")
+    set_all(255, 255, 255, 0.2)
+
+#respond to a status
+def show_status(status):
+      print ("New status: " + status)
+      options = {"available" : [solid_colour, AVAILABLE_COLOR],
+                 "busy" : [solid_colour, BUSY_COLOR],
+                 "disturbable" : [solid_colour, DISTURBABLE_COLOR],
+                 "finding" : [animation, FINDING_COLOR],
+                 "party" : [party, PARTY_LOOP_COUNT],
+                 "alert" : [alert, ALERT_COLOR]
+          }
+
+      if status == "party" :
+          count = options[status][1]
+          options[status][0](count, status)
+      elif status == "offline":
+          clear()
+          set_all(0, 0, 0, 0)
+          show()
+          print("stopping")
+      else:
+          color = options[status][1]
+          options[status][0](color[0], color[1], color[2], status)
+
 
 def status_loop():
     #this will constantly check to see if status has changed
-    show_status()
-    global previous_status
+    current_status = status.get_status()
+    show_status(current_status)
     while True:
-        if status.get_status() != previous_status:
-            #only change lights if status has changed
-            show_status()
-
+        try:
+            #time.sleep(1)
+            previous_status = current_status
+            current_status = status.get_status()
+            if current_status != previous_status:
+                show_status(current_status)
+        except Exception as e:
+            print (e)
+        
 status_loop()
