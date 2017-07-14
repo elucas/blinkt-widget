@@ -44,3 +44,4 @@ sudo crontab -e
 ### Getting Started!
 1. Run webpage.py & blinkt_status_display.py
 2. Visit [pi_local_ip_address]:5000 in any browser to edit your status!
+3. You can use any password for the first time you login (but make sure you remember it! - otherwise clear the blinkt_hash file and it will reset)
