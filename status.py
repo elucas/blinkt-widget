@@ -17,6 +17,8 @@ status_file = '/home/pi/Desktop/blinkt_status/data/blinkt_status'
 name_file = '/home/pi/Desktop/blinkt_status/data/blinkt_name'
 ip_file = '/home/pi/Desktop/blinkt_status/data/blinkt_ips'
 PROFILE_FILE = '/home/pi/Desktop/blinkt_status/data/blinkt_profiles'
+hash_file = '/home/pi/Desktop/blinkt_status/data/blinkt_hash'
+salt_file = '/home/pi/Desktop/blinkt_status/data/blinkt_salt'
 #ip_file is redundant at the moment
 
 #this is to set and get the Pi's own IP - redundant at the moment
@@ -66,10 +68,7 @@ def change_status(new_status):
     status.close()
     url = "http://" + MASTER_IP + ":5000/register"
     info = new_status + ','  + get_name()
-    print("Grrrr!!")
-    requests.post(url, json=info, timeout=5)
-    print("Nope?")
-    
+    requests.post(url, json=info, timeout=5)    
     print ("sent new status!")
     
 def get_status():
@@ -80,3 +79,25 @@ def get_status():
     return status
 
 get_self_ip()
+
+
+def get_hash():
+    file = open(hash_file, 'r')
+    the_hash = file.readline()
+    return the_hash
+
+def get_salt():
+    file = open(salt_file, 'r')
+    the_salt = file.readline()
+    return the_salt
+
+def set_hash(new_hash):
+    file = open(hash_file, 'w')
+    file.write(new_hash)
+
+def set_salt(new_salt):
+    file = open(salt_file, 'w')
+    file.write(new_salt)
+    
+
+

@@ -4,6 +4,8 @@ import status
 import os
 from functools import update_wrapper
 import sys
+import hashlib
+import master_data
 
 
 # for a quick intro into Flask web-servers I recommend:
@@ -58,18 +60,14 @@ app = Flask(__name__)
 PROFILE_ARRAY = []  
 @app.route('/register', methods=['GET','POST'])
 #@crossdomain(origin='*')
-def register():
+def register(): #14/07/17 this needs to be modified...
     if request.method == 'POST':
-        print("hello")
         #can't see print()? make sure you execute through terminal
         received_data = request.data
         print ("This is the data: " + received_data)
         #below removes the unwanted speech marks
         received_data = received_data[1:-1]
-        file = open('/home/pi/Desktop/blinkt_status/data/master_data', 'w+')
-        text_to_append = request.remote_addr + "," + received_data
-        file.write(text_to_append)
-        file.close()
+        master_data.add_new_data(received_data, request.remote_addr)
         return "Added your data to the master database!"
 
 def populateProfileArray():
@@ -162,20 +160,60 @@ def test():
 @app.route('/', methods=['GET', 'POST'])
 def send():
     if request.method == 'POST':
-        the_new_status = request.form['new_status']
-        password = request.form['pwd']
+      password = request.form['pwd']
+      encoded_password = password.encode("utf-8")
 
-        if password == "blinkt":
-            status.change_status(the_new_status)
-            return render_template('homepage.html', outcome = "Your new status is: " + the_new_status, the_color = "green", my_name = status.get_name())
-        else:
-            return render_template('homepage.html', outcome = "You've entered the wrong password!", the_color = "red", my_name = status.get_name())
-            
+      if check_password(encoded_password) == "Correct": #if they entered the correct password...
+          if (request.form['which_form']) == "status_form": #if they are updating their status...
+              the_new_status = request.form['new_status']
+              status.change_status(the_new_status)
+              return render_template('homepage.html', outcome = "Your new status is: " + the_new_status, the_color = "green", my_name = status.get_name())
+
+          elif (request.form['which_form']) == "name_form": #if they are updating their name...
+              the_new_name = request.form['new_name']
+              status.set_name(the_new_name)
+              return render_template('homepage.html', outcome = "Your new name is: " + the_new_name, the_color = "green", my_name = status.get_name())
+
+      else: #display this if they got the password wrong
+           return render_template('homepage.html', outcome = "You've entered the wrong password!", the_color = "red", my_name = status.get_name())
+                    
     return render_template('homepage.html', my_name = status.get_name())
-           
+
+def check_password(encoded_password):
+    if status.get_hash() == "": #if there is no password ---> make one
+        set_password(encoded_password)
+        return "Correct"
+
+    elif hashlib.sha512(encoded_password+status.get_salt()).hexdigest() == status.get_hash(): #if the password was correct...
+        return "Correct"
+    
+    return "Incorrect"
+
+def set_password(the_new_password):
+    salt = os.urandom(16) #generate a salt
+    hash_result = hashlib.sha512(the_new_password+salt).hexdigest() #create the hash  
+    status.set_salt(salt) #save the data
+    status.set_hash(hash_result)
 
 
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if request.method == 'POST':
+        old_password = request.form['pwd']
+        new_password_1 = request.form['new_pwd_1']
+        new_password_2 = request.form['new_pwd_2']
+        encoded_old_password = old_password.encode("utf-8")
 
+        if check_password(encoded_old_password) == "Correct": #if they entered the correct password...
+            if new_password_1 == new_password_2:
+                set_password(new_password_1.encode("utf-8")) # must be encoded to be passed on to the hash
+                return render_template('change_password.html', the_result ="Your new password has been set!") # new password set!
+            return render_template('change_password.html', the_result ="Your new passwords do not match!") # passwords don't match
+        return render_template('change_password.html', the_result ="Incorrect Original Password!") # your original password was wrong
+    return render_template('change_password.html') # render the form
+
+
+#14/07/17 - render() not in use...
 #this returns the html file
 #with appropiate information to display the correct page
 def render():
