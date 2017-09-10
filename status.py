@@ -13,7 +13,8 @@ STATUSES = ['available', 'busy', 'disturbable', 'finding', 'party', 'alert', 'of
 MASTER_IP = "192.168.55.116"
 
 #files to store information
-status_file = '/home/pi/Desktop/blinkt_status/data/blinkt_status' 
+STATUS_FILE = '/tmp/blinkt_status'
+
 name_file = '/home/pi/Desktop/blinkt_status/data/blinkt_name'
 ip_file = '/home/pi/Desktop/blinkt_status/data/blinkt_ips'
 PROFILE_FILE = '/home/pi/Desktop/blinkt_status/data/blinkt_profiles'
@@ -55,7 +56,6 @@ def set_name(new_name):
     url = "http://" + MASTER_IP + ":5000/register"
     info = get_status() + ',' + new_name
     r = requests.post(url, json=info, timeout=2)
-    r
     print ("sent new name!")
     return "Hey"
 
@@ -63,22 +63,25 @@ def set_name(new_name):
 #get and set status
 def change_status(new_status):
     #change the content of the file 'Blinkt_Status'
-    status = open(status_file,'w')
+    status = open(STATUS_FILE,'w')
     status.write(new_status)
     status.close()
     url = "http://" + MASTER_IP + ":5000/register"
     info = new_status + ','  + get_name()
     requests.post(url, json=info, timeout=5)    
     print ("sent new status!")
-    
-def get_status():
-    file = open(status_file,'r')
-    status = file.readline()
-    if status is "":
-       status = "available"
-    return status
 
-get_self_ip()
+
+def get_status():
+    status = None
+    if os.path.isfile(STATUS_FILE):
+        status_file = open(STATUS_FILE,'r')
+        status = status_file.readline().strip()
+
+    # TODO: Why not remove the fallback clause and let actions.py decide the default action?
+    if not status:
+        status = "available"
+    return status
 
 
 def get_hash():
