@@ -1,19 +1,35 @@
 import os
 import requests
+import ConfigParser
 import json
 import subprocess
+
+
+# CONFIG OPTIONS
+# name of device?
 
 #list of statuses
 #to add a status
     #add appropiate response to status in blinkt_display_status
     #add on webpage.py the approproate image and defining color of status
-STATUSES = ['available', 'busy', 'disturbable', 'finding', 'party', 'alert', 'offline']
+#STATUSES = ['available', 'busy', 'disturbable', 'finding', 'party', 'alert', 'offline']
 
 #list of Pi's and their respective IPs on the network
 MASTER_IP = "192.168.55.116"
 
 #files to store information
 STATUS_FILE = '/tmp/blinkt_status'
+
+CONFIG_FILE = 'blinkt-widget.conf'
+CONFIG_DEFAULTS = {
+    'status': {
+        'name': 'blinkt-widget'
+    },
+    'web': {
+        'port': 5000,
+        'password': None
+    }
+}
 
 name_file = '/home/pi/Desktop/blinkt_status/data/blinkt_name'
 ip_file = '/home/pi/Desktop/blinkt_status/data/blinkt_ips'
@@ -73,6 +89,7 @@ def change_status(new_status):
 
 
 def get_status():
+    """Get the current status value from the file"""
     status = None
     if os.path.isfile(STATUS_FILE):
         status_file = open(STATUS_FILE,'r')
@@ -82,6 +99,13 @@ def get_status():
     if not status:
         status = "available"
     return status
+
+
+def load_config(config_file=CONFIG_FILE):
+    """Load the config file, if present. Otherwise return defaults."""
+    if os.path.isfile(config_file):
+        config = ConfigParser.SafeConfigParser(CONFIG_DEFAULTS)
+        config.read(config_file)
 
 
 def get_hash():

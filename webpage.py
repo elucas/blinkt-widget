@@ -153,9 +153,6 @@ def home():
     
     return render()
 
-@app.route('/test')
-def test():
-    return 'The test worked!'
 
 @app.route('/', methods=['GET', 'POST'])
 def send():

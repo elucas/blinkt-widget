@@ -15,16 +15,23 @@ ALERT_COLOR = [200, 3, 8]
 PARTY_LOOP_COUNT = 10
 #CONSTANTS
 
+# Length of time in seconds to sleep between status checks
+SLEEP_TIME = 0.1
+
 VALID_ACTIONS = ['available', 'busy', 'disturbable', 'finding', 'party', 'alert', 'offline']
+
+class StatusChangedException(Exception):
+    """Raised when status changes during sleep state"""
+    pass
 
 
 def custom_sleep(duration, holder_status):
     """custom_sleep to allow to check for change in status while sleeping"""
-    count = int(duration/0.01)
+    count = int(duration/SLEEP_TIME)
     for x in range(0, count+1):
-        time.sleep(0.01)
+        time.sleep(SLEEP_TIME)
         if status.get_status() != holder_status:
-             raise Exception("Status changed")
+            raise StatusChangedException("Changed from {}".format(holder_status))
 
 
 def single_led(current_led, r, g, b, brightness):
@@ -104,14 +111,14 @@ def solid_colour(r,g,b, holder_status):
 def animation(r,g,b, holder_status):
     """Coherent backwards and forwards animation using trace function"""
     custom_sleep(0.5, holder_status)
-    for y in range(3):
+    while True:
         for x in range(-2,10):
             trace(x, r, g, b, "forwards")
             custom_sleep(0.25, holder_status)
-        if y != 2:
-            for x in range(7,-3,-1):
-                trace(x, r, g, b, "backwards")
-                custom_sleep(0.25, holder_status)
+        for x in range(7, -3, -1):
+            trace(x, r, g, b, "backwards")
+            custom_sleep(0.25, holder_status)
+
     flashing(r, g, b, 2, 0.5, holder_status)
     set_all(r, g, b, 1)
     show()
@@ -217,11 +224,16 @@ def status_loop():
     show_status(current_status)
     while True:
         try:
-            time.sleep(1)
-            previous_status = current_status
-            current_status = status.get_status()
-            if current_status != previous_status:
-                show_status(current_status)
+            custom_sleep(1, current_status)
+            show_status(current_status)
+
+            # previous_status = current_status
+            # current_status = status.get_status()
+            # if current_status != previous_status:
+            #    show_status(current_status)
+        except StatusChangedException as e:
+            print e.message
+            show_status(status.get_status())
         except Exception as e:
             print (e)
 
