@@ -10,7 +10,7 @@ Web-controlled status indicator built on top of the Blinkt HAT and library
 * Flask app to control getting/setting state
 
 
-### Setup contrab to start scripts on boot
+### Setup crontab to start scripts on boot
 crontab is a background process which allows you to execute scripts at specific times
 
 1. Create launcher.sh file in same dir and add the following lines:
@@ -45,3 +45,7 @@ sudo crontab -e
 1. Run webpage.py & blinkt_status_display.py
 2. Visit [pi_local_ip_address]:5000 in any browser to edit your status!
 3. You can use any password for the first time you login (but make sure you remember it! - otherwise clear the blinkt_hash file and it will reset)
+
+## Avahi
+* Install "avahi-utils": `sudo apt-get install avahi-utils`
+* Copy `blinkt.service` to `/etc/avahi/services`
