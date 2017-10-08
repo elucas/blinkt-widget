@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<!-- Avahi (minimal) config file to announce a 'blinkt' service running on this machine -->
+<!--
+Installation:
+* Install "avahi-utils" ~ "sudo apt-get install avahi-utils"
+* Copy this file to "/etc/avahi/services"
+-->
+
+<service-group>
+
+  <name replace-wildcards="yes">%h</name>
+
+  <service>
+    <type>_blinkt._tcp</type>
+    <port>5000</port>
+  </service>
+
+</service-group>
