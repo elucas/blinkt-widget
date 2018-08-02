@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Dashboard</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" type = "text/css" href="/static/bootstrap.css" crossorigin="anonymous">
+  		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  		<style>
+		body {
+			background-color: pink;
+		}
+		#header {
+			margin-bottom: 1.25em;
+			text-align: center;
+			background-color: deeppink;
+		}
+		#main {
+			background-color: pink;
+			padding: 1%;
+		}
+		#container {
+			margin: auto;
+
+		}
+		.form {
+			background-color: hotpink;
+			margin-bottom: 1%;
+			margin-right: 3%;
+			width: 30%;
+			float: left;
+		}
+
+		.status {
+			margin: 0% 10% 0% 25%;
+			background-color: deeppink;
+			width: 50%;
+			padding: 1% 5%;
+		}
+
+		.option{
+			padding: 1%;
+		}
+
+		.slidecontainer {
+    		width: 100%;
+		}
+
+		/* The slider itself */
+		.slider {
+		    -webkit-appearance: none;  /* Override default CSS styles */
+		    appearance: none;
+		    width: 100%; /* Full-width */
+		    height: 25px; /* Specified height */
+		    background: pink;
+		    outline: none; /* Remove outline */
+		    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+		    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+		    transition: opacity .2s;
+		    margin: 2% 0%;
+		}
+
+		/* Mouse-over effects */
+		.slider:hover {
+		    opacity: 1; /* Fully shown on mouse-over */
+		}
+
+		/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+		.slider::-webkit-slider-thumb {
+		    -webkit-appearance: none; /* Override default look */
+		    appearance: none;
+		    width: 25px; /* Set a specific slider handle width */
+		    height: 25px; /* Slider handle height */
+		    background: hotpink; /* Green background */
+		    cursor: pointer; /* Cursor on hover */
+		}
+
+		.slider::-moz-range-thumb {
+		    width: 25px; /* Set a specific slider handle width */
+		    height: 25px; /* Slider handle height */
+		    background: hotpink; /* Green background */
+		    cursor: pointer; /* Cursor on hover */
+		}
+
+		h2{
+			text-align: center;
+			padding-top: 1%;
+		}
+
+		h4{
+			text-align: center;
+		}
+
+		button{
+			color: hotpink;
+			margin: 1% 43%;
+		}
+
+		</style>
+	</head>
+	<body>
+		<div id="main">
+			<div id="header">
+				<h1> Dashboard </h1>
+			</div>
+			<div id="container">
+				{% for status_dict in statuses %}
+					{% if 'missing' in status_dict %}
+						<div>
+							<h2>Missing {{ status_dict.missing }}</h2>
+						</div>
+					{% else %}
+						<!-- Generates an form box for each Pi connected -->
+								<div class="form">
+									<form method="POST" action="/">
+										<input type="hidden" name="endpoint" value="{{ status_dict.endpoint }}">
+										<h2 style=""><b>{{ status_dict.device_type.title() }}'s Status</b></h2>
+										<div class="status">
+											<!-- Generates a radio button for each possible status for that Pi -->
+												{% if status_dict.device_type == 'blinkt' %}
+													{% for exposed_status in status_dict.callable_statuses_list %}
+														<div class="option">
+															<input type="radio" value={{ exposed_status }} name="new_status" {% if status_dict.status == exposed_status %}checked{% endif %}> {{ exposed_status.title() }}
+														</div>
+													{% endfor %}
+												<p>Your status is {{ status_dict.status }}</p>
+												{% elif status_dict.device_type == 'lightswitch' %}
+														<h4> Dim the lights </h4>
+														<div class="slidecontainer">
+		  													<input type="range" min="0" max="100" step="25" value={{ status_dict.status | replace('low_', '') }} class="slider" id="myRange">
+		  													<!-- TO DO: replace 50 with a variable that detects the current value -->
+		  													<input type="hidden" name="new_status" value="{{ status_dict.status }}" id="slider_status">
+														</div>
+												{% endif %}
+										</div>
+										<button type="submit" class="btn btn-primary" name="which_form" value="status_form">Submit</button>
+									</form>
+								</div>
+					{% endif %}
+				{% endfor %}
+			</div>
+		</div>
+	</body>
+	<script>
+  			var slider = document.getElementById("myRange");
+			var output = document.getElementById("slider_status");
+			// output.innerHTML = slider.value; // Display the default slider value
+
+			// Update the current slider value (each time you drag the slider handle)
+			slider.oninput = function() {
+			    output.value = "low_" + this.value;
+			} 
+  	</script>
+</html>

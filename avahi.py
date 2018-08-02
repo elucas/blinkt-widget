@@ -4,10 +4,20 @@
 import subprocess
 
 SERVICE = '_blinkt._tcp'
-
+BLINKT_DEVICES = '/tmp/blinkt_devices'
 
 def browse():
-    """Call the avahi-browse program installed using 'apt-get install avahi-utils'"""
+    """Call the avahi-browse program installed using 'apt-get install avahi-utils'
+
+    Example output (partial):
+
+= enp3s0 IPv4 status1                                       _blinkt._tcp         local
+   hostname = [status1.local]
+   address = [192.168.55.35]
+   port = [5000]
+   txt = ["good=innit"]
+
+    """
     # -t : terminate after running
     stdout = subprocess.check_output(['avahi-browse', '-t', '--resolve', '--all'])
 
@@ -26,15 +36,37 @@ def browse():
         if in_match:
             # e.g. "    address = [192.168.55.111]"
             if "address" in line:
-                # Pull out the address and add it to list
-                matches.append(
-                    line[line.index('[')+1:line.index(']')]
-                )
+                # Pull out the address
+                address = line[line.index('[')+1:line.index(']')]
+            if "port" in line:
+                # Pull out the port and add it to the list
+                hostname = address + ':' + line[line.index('[')+1:line.index(']')]
+                matches.append(hostname)
     return matches
 
+def write(devices):
+    file = open(BLINKT_DEVICES, 'w')
+    for device in devices:
+        file.write(device + '\n')
+    file.close()
+    print "Written"
 
-if __name__ == "__main__":
-    matches = browse()
-    for match in matches:
-        print match
+def read():
+    with open(BLINKT_DEVICES, 'r') as file:
+        lines = file.readlines()
+        blinkt_devices_list = []
+        for line in lines:
+            line = line.strip()
+            blinkt_devices_list.append(line)
+        return blinkt_devices_list
 
+def run():
+    if __name__ == "__main__":
+        matches = browse()
+
+        print "Matches..."
+        for match in matches:
+            print match
+            
+        write(matches)
+run()
