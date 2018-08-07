@@ -1,3 +1,4 @@
 blinkt
 flask
 requests
+flake8
