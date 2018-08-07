@@ -1,4 +1,4 @@
-# !/usr/bin/env python
+#!/usr/bin/env python
 """Query avahi and log all the machines advertising a blinkt service
 """
 import subprocess
@@ -76,8 +76,7 @@ def run():
         print
         "Matches..."
         for match in matches:
-            print
-            match
+            print match
         write(matches)
 
 

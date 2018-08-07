@@ -68,7 +68,7 @@ def trace(current_led, r, g, b, direction):
 
 def led_line(interval, brightness, led, r, g, b, current_status):
     """Cause the lights to travel in a line
-and have brightness close to the normal distribution."""
+	and have brightness close to the normal distribution."""
     if led == 0 or led == 7:
         clear()
         set_pixel(led, r, g, b, (brightness / 20.0))
