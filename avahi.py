@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# !/usr/bin/env python
 """Query avahi and log all the machines advertising a blinkt service
 """
 import subprocess
@@ -6,12 +6,13 @@ import subprocess
 SERVICE = '_blinkt._tcp'
 BLINKT_DEVICES = '/tmp/blinkt_devices'
 
+
 def browse():
     """Call the avahi-browse program installed using 'apt-get install avahi-utils'
 
     Example output (partial):
 
-= enp3s0 IPv4 status1                                       _blinkt._tcp         local
+= enp3s0 IPv4 status1                               _blinkt._tcp         local
    hostname = [status1.local]
    address = [192.168.55.35]
    port = [5000]
@@ -19,8 +20,10 @@ def browse():
 
     """
     # -t : terminate after running
-    stdout = subprocess.check_output(['avahi-browse', '-t', '--resolve', '--all'])
-
+    stdout = subprocess.check_output(['avahi-browse',
+                                      '-t',
+                                      '--resolve',
+                                      '--all'])
     matches = []
     in_match = False
     for line in stdout.split("\n"):
@@ -37,19 +40,24 @@ def browse():
             # e.g. "    address = [192.168.55.111]"
             if "address" in line:
                 # Pull out the address
-                address = line[line.index('[')+1:line.index(']')]
+                address = line[line.index('[') + 1:line.index(']')]
             if "port" in line:
                 # Pull out the port and add it to the list
-                hostname = address + ':' + line[line.index('[')+1:line.index(']')]
+                hostname = address + ':' + line[
+                                           line.index('[') + 1:line.index(']')
+                                           ]
                 matches.append(hostname)
     return matches
+
 
 def write(devices):
     file = open(BLINKT_DEVICES, 'w')
     for device in devices:
         file.write(device + '\n')
     file.close()
-    print "Written"
+    print
+    "Written"
+
 
 def read():
     with open(BLINKT_DEVICES, 'r') as file:
@@ -60,13 +68,17 @@ def read():
             blinkt_devices_list.append(line)
         return blinkt_devices_list
 
+
 def run():
     if __name__ == "__main__":
         matches = browse()
 
-        print "Matches..."
+        print
+        "Matches..."
         for match in matches:
-            print match
-            
+            print
+            match
         write(matches)
+
+
 run()
