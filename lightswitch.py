@@ -12,7 +12,7 @@ light_color = (255, 255, 255)
 # @basic_func.expose
 # def on(current_status):
 #     basic_func.solid_colour(light_color[0], light_color[1], light_color[2],\
-# current_status)
+#     current_status)
 
 # @basic_func.expose
 # def off(current_status):
@@ -24,7 +24,7 @@ light_color = (255, 255, 255)
 # def red(current_status):
 # 	light_color = (153, 0, 0)
 # 	basic_func.solid_colour(light_color[0], light_color[1], light_color[2\
-# ], current_status)
+#       ], current_status)
 
 
 @basic_func.expose
