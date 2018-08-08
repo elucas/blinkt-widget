@@ -195,8 +195,7 @@ def status_loop(default):
 
             custom_sleep(1, current_status)
         except StatusChangedException as e:
-            print
-            e.message
+            print e.message
             new_status = e.message
         except Exception as e:
             print(e)
