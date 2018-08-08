@@ -68,3 +68,7 @@ sudo crontab -e
 
 ## What all the different files do
 api.py talks to dashboard.py and tells it the device's current status, found from status.py. What it does during this status is defined by demo.py (or whatever you decide to call it; there's another called lightswitch.py). You will find multiple 'building block' processes in basic_func.py. blinkt.service announces the device as a blinkt service to avahi.py, which tells dashboard.py the locations of api.py. ssh and wpa_supplicant.conf are to be copied to the boot drive of the SD card before you boot it up for the first time. 
+The bin folder contains the git-hooks folder which contains the pre-commit folder which contains the shell files: install-git-hooks.sh, pre-commit-runner.sh, and python-flake8.  These three files are designed to compare an changes in this repo to pep8 standards, before they are committed.
+The install-get-hooks.sh file makes a symbolic link between the repo files and the git hooks folder, so that all python files can checked against every type of relevant hook.
+The pre-commit-runner.sh file iterates through every file in the repo, and somehow uses them in a way that defies all logic.
+The python-flake8 file then looks at any difference betweent he modified and unmodified files, and compares the changed lines of code to pep8 standards.

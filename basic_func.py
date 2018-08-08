@@ -1,5 +1,5 @@
 import time
-from blinkt import set_clear_on_exit, clear, set_all, show, set_pixel 
+from blinkt import set_clear_on_exit, clear, set_all, show, set_pixel
 import status
 from functools import wraps
 
@@ -10,7 +10,7 @@ LED_MAX = 7
 # Length of time in seconds to sleep between status checks
 SLEEP_TIME = 0.1
 
-# User-callable functions get added to this dict using the @expose decorator below
+# User-callable functions get added to this dict using @expose decorator below
 EXPOSED_FUNCTION_DICT = {}
 
 set_clear_on_exit(False)
@@ -67,7 +67,8 @@ def trace(current_led, r, g, b, direction):
 
 
 def led_line(interval, brightness, led, r, g, b, current_status):
-    """Cause the lights to travel in a line and have brightness close to the normal distribution."""
+    """Cause the lights to travel in a line
+	and have brightness close to the normal distribution."""
     if led == 0 or led == 7:
         clear()
         set_pixel(led, r, g, b, (brightness / 20.0))
@@ -134,6 +135,7 @@ def animation(r, g, b, current_status):
     clear()
     show()
 
+
 def custom_alert(r, g, b, current_status):
     """Consistent pulse"""
     clear()
@@ -161,6 +163,7 @@ def custom_alert(r, g, b, current_status):
         else:
             custom_sleep(0.05, current_status)
 
+
 def get_exposed_function_names():
     return EXPOSED_FUNCTION_DICT.keys()
 
@@ -174,7 +177,7 @@ def show_status(new_status):
     if not is_exposed(new_status):
         raise Exception("Invalid status: {}".format(new_status))
 
-    print ("New status: " + new_status)
+    print("New status: " + new_status)
     # !MAGIC HAPPENS HERE!
     EXPOSED_FUNCTION_DICT[new_status](new_status)
 
@@ -195,7 +198,8 @@ def status_loop(default):
             print e.message
             new_status = e.message
         except Exception as e:
-            print (e)
+            print(e)
+
 
 def callable_statuses():
     callable_statuses_list = []
